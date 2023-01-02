@@ -11,7 +11,7 @@ def generate_bender_numbers(n):
 def generate_pairs(n):
     for i in range(n):
         row = []
-        #a^3+b^3 === b^3+a^3 so only need to generate half the pairs since (8, 9) will === (9,8)
+        #a^3+b^3 === b^3+a^3 so only need to generate half the pairs since (8, 9) will === (9,8,)
         for j in range(i, n):
              row.append((i, j))
         print(row)
@@ -22,3 +22,6 @@ rdict = {}
 rdict[(1,1)] = cube(1) + cube(1)
 print(rdict)
 generate_pairs(10)
+
+def download_advanced_stats():
+    

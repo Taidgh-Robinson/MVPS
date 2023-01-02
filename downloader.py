@@ -1,12 +1,12 @@
 from nba_api.stats.static import players
 from nba_api.stats.endpoints import playercareerstats
-from basketball_reference_scraper.players import get_stats, get_game_logs, get_player_headshot
+#from basketball_reference_scraper.players import get_stats, get_game_logs, get_player_headshot
 
 import pandas as pd 
 import csv
 
 def gen_ids():
-    df = pd.read_csv('mvps.csv')
+    df = pd.read_csv('data/mvps.csv')
     names = set(df['Player'].tolist())
     
     d = {}
@@ -33,10 +33,11 @@ def calculate_per_game_stat(row, stat):
 
 #gen_ids()
 #download_player_career_stats()
+#download_advanced_stats()
 
 
 def create_mvp_data_table():
-    mvps = pd.read_csv('mvps.csv')    
+    mvps = pd.read_csv('data/mvps.csv')    
     mvp_ids = pd.read_csv('data/ids.csv')
     data_frame = pd.DataFrame()
     for index, row in mvps.iterrows():
@@ -44,8 +45,11 @@ def create_mvp_data_table():
         id = int((mvp_ids.loc[mvp_ids['name'] == row['Player']])['id'])
         print(id)
         data = pd.read_csv('data/player_career_stats/{}.csv'.format(str(id)))
+        advanced = pd.read_csv('data/player_advanced_stats/{}.csv'.format(str(id)))
         data_row = data.loc[data['SEASON_ID'] == row['Season']]
         data_row['PLAYER'] = row['Player']
+        advanced_row = advanced.loc[advanced['SEASON'] == row['Season']]
+        print(advanced_row)
         data_row = calculate_per_game_stat(data_row, 'PTS')
         data_row = calculate_per_game_stat(data_row, 'REB')
         data_row = calculate_per_game_stat(data_row, 'AST')
@@ -66,4 +70,4 @@ def download_advanced_stats():
             stats = get_stats(name, stat_type='ADVANCED', playoffs=False, career=False)        
             stats.to_csv('data/player_advanced_stats/{}.csv'.format(str(row['id'])))
 
-download_advanced_stats()
+print(create_mvp_data_table())
