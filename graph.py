@@ -52,25 +52,18 @@ def gen_by_year_dataset(data, tag):
     r_df = pd.DataFrame(dtm, columns=['idx', 'season', tag])
     return r_df
 
-
-O_COUNTING_STATS = ['PTS', 'REB', 'AST']
-D_COUNTING_STATS = ['STL', 'BLK']
-EFFICENCY_METRICS = ['FG_PCT', 'FG3_PCT', 'TS%']
-
-tag_to_label = {"PTS": "Points", "REB" : "Rebounds", "AST" : "Assits", "STL" : "Steals", "BLK" : "Blocks", "FG_PCT": "Field Goal Percentage", "FG3_PCT" : "3 Point Percentage", "TS%" : "True Shooting Percentage"}
+tag_to_label = {"PTS": "Points", "REB" : "Rebounds", "AST" : "Assits", "STL" : "Steals", "BLK" : "Blocks", "FG_PCT": "Field Goal Percentage", "FG3_PCT" : "3 Point Percentage", "TS%" : "True Shooting Percentage", 'OWS' : 'Offensive Win Shares'}
 
 def beep(tag):
-    if(tag=='REB'):
-        return 'TRB'
-    if(tag=='FG_PCT'):
-        return 'FG%'
-    if(tag=='FG3_PCT'):
-        '3P%'
+    ret_map = {'REB':'TRB', 'FG_PCT':'FG%', 'FG3_PCT':'3P%'}
+    if(tag in ret_map.keys()):
+        return ret_map[tag]
     return tag
 
 def add_player_to_scat(scat, name, tag, sub_cat):
     player = pd.read_csv('data/this_year/{}.csv'.format(name))
-    new_row = {'idx':67, 'season':'2022-23', tag:float(player[beep(tag)]), 'sub_cat':sub_cat}
+    player_tag = beep(tag)
+    new_row = {'idx':67, 'season':'2022-23', tag:float(player[player_tag]), 'sub_cat':sub_cat}
     scat = scat.append(new_row, ignore_index=True)
     return scat
 
@@ -89,20 +82,42 @@ def gen_scatter_plot_by_year(tag, per_game):
     SCAT = add_player_to_scat(SCAT, 'luka', tag, 2)
 
     sp = sns.scatterplot(data=SCAT, x='idx', y=tag, hue='sub_cat')
-    sp.set_title("{} per game by the MVP".format(tag_to_label[tag]))
+    if(per_game):
+        sp.set_title("{} per game by the MVP".format(tag_to_label[tag]))
+    else:
+        sp.set_title("{} by the MVP".format(tag_to_label[tag]))
     sp.set_xticks(xticks)
     sp.set_xticklabels(labels)
     sp.set_xlabel("Season")
-    sp.set_ylabel("{} per game".format(tag_to_label[tag]))
+    if(per_game):
+        sp.set_ylabel("{} per game".format(tag_to_label[tag]))
+    else:
+        sp.set_ylabel("{}".format(tag_to_label[tag]))
     plt.savefig('data/graphs/per_game/{}.png'.format(tag))
     plt.clf()
 
-for stat in O_COUNTING_STATS:
-    gen_scatter_plot_by_year(stat, True)
+def gen_scatter_plot_by_cat(cats, per_game):
+    pass 
+    mvp = pd.read_csv('data/mvps_downloaded.csv')
+    i = 0
+    r_df = pd.DataFrame()
+    for cat in cats:
+        r = pd.DataFrame()
+        if(per_game):
+            r['data'] = mvp[cat]/mvp['GP']
+        else:
+            r['data'] = mvp[cat]
+        r['idx'] = i
+        r['player_id'] = 0
+        r_df = pd.concat([r_df, r], axis=0)
+        i += 1
 
-for stat in D_COUNTING_STATS:
-    gen_scatter_plot_by_year(stat, True)
+    sp = sns.scatterplot(data=r_df, x='idx', y='data', hue='player_id', marker='_')
+    plt.show()
+    plt.clf()
 
-for stat in EFFICENCY_METRICS:
-    gen_scatter_plot_by_year(stat, False)
+BASIC_COUNTING_STATS = ['PTS', 'REB', 'AST']
 
+BASIC_DEFENSIVE_COUNTING_STATS = ['BLK', 'STL']
+
+gen_scatter_plot_by_cat(BASIC_DEFENSIVE_COUNTING_STATS, True)
