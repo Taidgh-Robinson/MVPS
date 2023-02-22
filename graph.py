@@ -52,7 +52,7 @@ def gen_by_year_dataset(data, tag):
     r_df = pd.DataFrame(dtm, columns=['idx', 'season', tag])
     return r_df
 
-tag_to_label = {"PTS": "Points", "REB" : "Rebounds", "AST" : "Assits", "STL" : "Steals", "BLK" : "Blocks", "FG_PCT": "Field Goal Percentage", "FG3_PCT" : "3 Point Percentage", "TS%" : "True Shooting Percentage", 'OWS' : 'Offensive Win Shares'}
+tag_to_label = {"PTS": "Points", "REB" : "Rebounds", "AST" : "Assits", "STL" : "Steals", "BLK" : "Blocks", "FG_PCT": "Field Goal Percentage", "FG3_PCT" : "3 Point Percentage", "TS%" : "True Shooting Percentage", 'OWS' : 'Offensive Win Shares', 'TOV' : 'Turnovers', 'PF':'Personal Fouls'}
 
 def beep(tag):
     ret_map = {'REB':'TRB', 'FG_PCT':'FG%', 'FG3_PCT':'3P%'}
@@ -93,11 +93,10 @@ def gen_scatter_plot_by_year(tag, per_game):
         sp.set_ylabel("{} per game".format(tag_to_label[tag]))
     else:
         sp.set_ylabel("{}".format(tag_to_label[tag]))
-    plt.savefig('data/graphs/per_game/{}.png'.format(tag))
+    plt.savefig('data/graphs/by_year/{}.png'.format(tag))
     plt.clf()
 
-def gen_scatter_plot_by_cat(cats, per_game):
-    pass 
+def gen_scatter_plot_by_cat(cats, per_game, label):
     mvp = pd.read_csv('data/mvps_downloaded.csv')
     i = 0
     r_df = pd.DataFrame()
@@ -112,12 +111,16 @@ def gen_scatter_plot_by_cat(cats, per_game):
         r_df = pd.concat([r_df, r], axis=0)
         i += 1
 
-    sp = sns.scatterplot(data=r_df, x='idx', y='data', hue='player_id', marker='_')
-    plt.show()
+    sp = sns.scatterplot(data=r_df, x='idx', y='data', hue='player_id', marker='_', s=200)
+    sp.set_xticks(list(range(len(cats))))
+    sp.set_xticklabels([tag_to_label[c] for c in cats])
+    plt.savefig('data/graphs/by_cat/{}.png'.format(label))
     plt.clf()
 
-BASIC_COUNTING_STATS = ['PTS', 'REB', 'AST']
+BASIC_OFFENSIVE_COUNTING_STATS = (['PTS', 'REB', 'AST'], 'Offensive Counting Stats')
+BASIC_DEFENSIVE_COUNTING_STATS = (['BLK', 'STL'], 'Defensive Counting Stats')
+BASIC_BAD_STATS = (['TOV', 'PF'], 'Negative Counting Stats')
 
-BASIC_DEFENSIVE_COUNTING_STATS = ['BLK', 'STL']
 
-gen_scatter_plot_by_cat(BASIC_DEFENSIVE_COUNTING_STATS, True)
+gen_scatter_plot_by_year('TOV', True)
+gen_scatter_plot_by_cat(BASIC_BAD_STATS[0], True, BASIC_BAD_STATS[1])
