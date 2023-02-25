@@ -112,17 +112,39 @@ def gen_scatter_plot_by_cat(cats, per_game, label):
         r_df = pd.concat([r_df, r], axis=0)
         i += 1
 
+    tatum = pd.read_csv('data/this_year/tatum.csv')
+    luka = pd.read_csv('data/this_year/luka.csv')
+
+    r_df = add_player_info_to_cat(r_df, tatum, cats, True)
+    r_df = add_player_info_to_cat(r_df, luka, cats, True)
+
     sp = sns.scatterplot(data=r_df, x='idx', y='data', hue='player_id', marker='_', s=200)
     sp.set_xticks(list(range(len(cats))))
     sp.set_xticklabels([tag_to_label[c] for c in cats])
     plt.savefig('data/graphs/by_cat/{}.png'.format(label))
     plt.clf()
 
+def add_player_info_to_cat(data, player, rows, per_game):
+    r_df = data
+    max_player_id = data['player_id'].max()+1
+    i = 0
+    for row in rows:
+        r = pd.DataFrame()
+        if(per_game):
+            r['data'] = player[row]/player['G']
+        else:
+            r['data'] = player[row]
+        r['idx'] = i
+        r['player_id'] = max_player_id
+        r_df = pd.concat([r_df, r], axis=0)
+        i += 1
+
+    return r_df
+
 BASIC_OFFENSIVE_COUNTING_STATS = (['PTS', 'REB', 'AST'], 'Offensive Counting Stats')
 BASIC_DEFENSIVE_COUNTING_STATS = (['BLK', 'STL'], 'Defensive Counting Stats')
 BASIC_BAD_STATS = (['TOV', 'PF'], 'Negative Counting Stats')
-ADVANCED_STATS = (['PER','OWS','DWS','WS','OBPM','DBPM','BPM','VORP'], 'Advanced Stats')
+ADVANCED_STATS = (['OWS','DWS','WS','OBPM','DBPM','BPM','VORP', 'PER'], 'Advanced Stats')
 
-
-#gen_scatter_plot_by_year('TOV', True)
-gen_scatter_plot_by_cat(ADVANCED_STATS[0], True, ADVANCED_STATS[1])
+gen_scatter_plot_by_year('TOV', True)
+gen_scatter_plot_by_cat(ADVANCED_STATS[0], False, ADVANCED_STATS[1])
