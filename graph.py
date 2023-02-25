@@ -52,7 +52,8 @@ def gen_by_year_dataset(data, tag):
     r_df = pd.DataFrame(dtm, columns=['idx', 'season', tag])
     return r_df
 
-tag_to_label = {"PTS": "Points", "REB" : "Rebounds", "AST" : "Assits", "STL" : "Steals", "BLK" : "Blocks", "FG_PCT": "Field Goal Percentage", "FG3_PCT" : "3 Point Percentage", "TS%" : "True Shooting Percentage", 'OWS' : 'Offensive Win Shares', 'TOV' : 'Turnovers', 'PF':'Personal Fouls'}
+tag_to_label = {"PTS": "Points", "REB" : "Rebounds", "AST" : "Assits", "STL" : "Steals", "BLK" : "Blocks", "FG_PCT": "Field Goal Percentage", "FG3_PCT" : "3 Point Percentage", "TS%" : "True Shooting Percentage", 'OWS' : 'Offensive Win Shares', 'TOV' : 'Turnovers', 'PF':'Personal Fouls', 'PER':'PER','OWS':'Offensive Win Shares',
+                'DWS':'Defensive Win Shares','WS':'Win Shares','OBPM':'OBPM','DBPM':'DBPM','BPM':'BPM','VORP':'VPR'}
 
 def beep(tag):
     ret_map = {'REB':'TRB', 'FG_PCT':'FG%', 'FG3_PCT':'3P%'}
@@ -120,7 +121,8 @@ def gen_scatter_plot_by_cat(cats, per_game, label):
 BASIC_OFFENSIVE_COUNTING_STATS = (['PTS', 'REB', 'AST'], 'Offensive Counting Stats')
 BASIC_DEFENSIVE_COUNTING_STATS = (['BLK', 'STL'], 'Defensive Counting Stats')
 BASIC_BAD_STATS = (['TOV', 'PF'], 'Negative Counting Stats')
+ADVANCED_STATS = (['PER','OWS','DWS','WS','OBPM','DBPM','BPM','VORP'], 'Advanced Stats')
 
 
-gen_scatter_plot_by_year('TOV', True)
-gen_scatter_plot_by_cat(BASIC_BAD_STATS[0], True, BASIC_BAD_STATS[1])
+#gen_scatter_plot_by_year('TOV', True)
+gen_scatter_plot_by_cat(ADVANCED_STATS[0], True, ADVANCED_STATS[1])
