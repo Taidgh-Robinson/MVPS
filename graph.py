@@ -2,6 +2,15 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+palette=[
+    '#838a96',
+    #Embiid
+    '#006BB6',
+    #Joker
+    '#FEC524',
+    #Gianni
+    '#00471B',
+]
 
 def gen_labels(seasons):
     seasons = ["'"+x.split("-")[1] for x in seasons]
@@ -52,7 +61,7 @@ def gen_by_year_dataset(data, tag):
     r_df = pd.DataFrame(dtm, columns=['idx', 'season', tag])
     return r_df
 
-tag_to_label = {"PTS": "Points", "REB" : "Rebounds", "AST" : "Assits", "STL" : "Steals", "BLK" : "Blocks", "FG_PCT": "Field Goal Percentage", "FG3_PCT" : "3 Point Percentage", "TS%" : "True Shooting Percentage", 'OWS' : 'OWS', 'TOV' : 'Turnovers', 'PF':'Personal Fouls', 'PER':'PER','OWS':'OWS',
+tag_to_label = {"PTS": "Points", "REB" : "Rebounds", "AST" : "Assists", "STL" : "Steals", "BLK" : "Blocks", "FG_PCT": "Field Goal Percentage", "FG3_PCT" : "3 Point Percentage", "TS%" : "True Shooting Percentage", 'OWS' : 'OWS', 'TOV' : 'Turnovers', 'PF':'Personal Fouls', 'PER':'PER','OWS':'OWS',
                 'DWS':'DWS','WS':'WS','OBPM':'OBPM','DBPM':'DBPM','BPM':'BPM','VORP':'VORP'}
 
 def beep(tag):
@@ -61,10 +70,15 @@ def beep(tag):
         return ret_map[tag]
     return tag
 
-def add_player_to_scat(scat, name, tag, sub_cat):
+def add_player_to_scat(scat, name, tag, sub_cat, per_game):
     player = pd.read_csv('data/this_year/{}.csv'.format(name))
     player_tag = beep(tag)
-    new_row = {'idx':67, 'season':'2022-23', tag:float(player[player_tag]), 'sub_cat':sub_cat}
+
+    if(per_game):
+        new_row = {'idx':67, 'season':'2022-23', tag:float(player[player_tag]/player['G']), 'sub_cat':sub_cat}
+    else:
+        new_row = {'idx':67, 'season':'2022-23', tag:float(player[player_tag]), 'sub_cat':sub_cat}
+
     scat = scat.append(new_row, ignore_index=True)
     return scat
 
@@ -79,10 +93,11 @@ def gen_scatter_plot_by_year(tag, per_game):
 
 
     SCAT['sub_cat'] = 0
-    SCAT = add_player_to_scat(SCAT, 'tatum', tag, 1)
-    SCAT = add_player_to_scat(SCAT, 'luka', tag, 2)
+    SCAT = add_player_to_scat(SCAT, 'embiid', tag, 1, per_game)
+    SCAT = add_player_to_scat(SCAT, 'jokic', tag, 2, per_game)
+    SCAT = add_player_to_scat(SCAT, 'giannis', tag, 3, per_game)
 
-    sp = sns.scatterplot(data=SCAT, x='idx', y=tag, hue='sub_cat')
+    sp = sns.scatterplot(data=SCAT, x='idx', y=tag, hue='sub_cat', palette=palette)
     if(per_game):
         sp.set_title("{} per game by the MVP".format(tag_to_label[tag]))
     else:
@@ -112,16 +127,19 @@ def gen_scatter_plot_by_cat(cats, per_game, label):
         r_df = pd.concat([r_df, r], axis=0)
         i += 1
 
-    tatum = pd.read_csv('data/this_year/tatum.csv')
-    luka = pd.read_csv('data/this_year/luka.csv')
+    embiid = pd.read_csv('data/this_year/embiid.csv')
+    jokic = pd.read_csv('data/this_year/jokic.csv')
+    giannis = pd.read_csv('data/this_year/giannis.csv')
 
-    r_df = add_player_info_to_cat(r_df, tatum, cats, per_game)
-    r_df = add_player_info_to_cat(r_df, luka, cats, per_game)
+    r_df = add_player_info_to_cat(r_df, embiid, cats, per_game)
+    r_df = add_player_info_to_cat(r_df, jokic, cats, per_game)
+    r_df = add_player_info_to_cat(r_df, giannis, cats, per_game)
 
-    sp = sns.scatterplot(data=r_df, x='idx', y='data', hue='player_id', marker='_', s=200)
+    sp = sns.scatterplot(data=r_df, x='idx', y='data', hue='player_id', palette=palette, marker='_', s=200)
     sp.set_xticks(list(range(len(cats))))
     sp.set_xticklabels([tag_to_label[c] for c in cats])
-    plt.tight_layout()
+    sp.set_xlabel("")
+    sp.set_ylabel("")
     plt.savefig('data/graphs/by_cat/{}.png'.format(label))
     plt.clf()
 
@@ -147,5 +165,16 @@ BASIC_DEFENSIVE_COUNTING_STATS = (['BLK', 'STL'], 'Defensive Counting Stats')
 BASIC_BAD_STATS = (['TOV', 'PF'], 'Negative Counting Stats')
 ADVANCED_STATS = (['OWS','DWS','WS','OBPM','DBPM','BPM','VORP', 'PER'], 'Advanced Stats')
 
+for stat in BASIC_OFFENSIVE_COUNTING_STATS[0]:
+    gen_scatter_plot_by_year(stat, True)
 
+for stat in BASIC_DEFENSIVE_COUNTING_STATS[0]:
+    gen_scatter_plot_by_year(stat, True)
+
+for stat in BASIC_BAD_STATS[0]:
+    gen_scatter_plot_by_year(stat, True)
+
+
+gen_scatter_plot_by_cat(BASIC_DEFENSIVE_COUNTING_STATS[0], True, BASIC_DEFENSIVE_COUNTING_STATS[1])
+gen_scatter_plot_by_cat(BASIC_BAD_STATS[0], True, BASIC_BAD_STATS[1])
 gen_scatter_plot_by_cat(ADVANCED_STATS[0], False, ADVANCED_STATS[1])
