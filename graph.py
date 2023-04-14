@@ -1,3 +1,6 @@
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -61,11 +64,11 @@ def gen_by_year_dataset(data, tag):
     r_df = pd.DataFrame(dtm, columns=['idx', 'season', tag])
     return r_df
 
-tag_to_label = {"PTS": "Points", "REB" : "Rebounds", "AST" : "Assists", "STL" : "Steals", "BLK" : "Blocks", "FG_PCT": "Field Goal Percentage", "FG3_PCT" : "3 Point Percentage", "TS%" : "True Shooting Percentage", 'OWS' : 'OWS', 'TOV' : 'Turnovers', 'PF':'Personal Fouls', 'PER':'PER','OWS':'OWS',
+tag_to_label = {"PTS": "Points", "REB" : "Rebounds", "AST" : "Assists", "STL" : "Steals", "BLK" : "Blocks", "FG_PCT": "FG %", "FG3_PCT" : "3PT %", "FT_PCT":"FT %", "TS%" : "True Shooting %", 'OWS' : 'OWS', 'TOV' : 'Turnovers', 'PF':'Personal Fouls', 'PER':'PER','OWS':'OWS',
                 'DWS':'DWS','WS':'WS','OBPM':'OBPM','DBPM':'DBPM','BPM':'BPM','VORP':'VORP'}
 
 def beep(tag):
-    ret_map = {'REB':'TRB', 'FG_PCT':'FG%', 'FG3_PCT':'3P%'}
+    ret_map = {'REB':'TRB'}
     if(tag in ret_map.keys()):
         return ret_map[tag]
     return tag
@@ -109,6 +112,8 @@ def gen_scatter_plot_by_year(tag, per_game):
         sp.set_ylabel("{} per game".format(tag_to_label[tag]))
     else:
         sp.set_ylabel("{}".format(tag_to_label[tag]))
+    
+    plt.legend(fontsize="8", labels=['', 'Previous MVPs', 'Joel Embiid', "Nikola Jokic", "Giannis Antetokounmpo"])
     plt.savefig('data/graphs/by_year/{}.png'.format(tag))
     plt.clf()
 
@@ -136,10 +141,17 @@ def gen_scatter_plot_by_cat(cats, per_game, label):
     r_df = add_player_info_to_cat(r_df, giannis, cats, per_game)
 
     sp = sns.scatterplot(data=r_df, x='idx', y='data', hue='player_id', palette=palette, marker='_', s=200)
+
+    if(per_game):
+        sp.set_title("{} per game by the MVP".format(label))
+    else:
+        sp.set_title("{} by the MVP".format(label))
+
     sp.set_xticks(list(range(len(cats))))
     sp.set_xticklabels([tag_to_label[c] for c in cats])
     sp.set_xlabel("")
     sp.set_ylabel("")
+    plt.legend(fontsize="8", labels=['', 'Previous MVPs', 'Joel Embiid', "Nikola Jokic", "Giannis Antetokounmpo"])
     plt.savefig('data/graphs/by_cat/{}.png'.format(label))
     plt.clf()
 
@@ -150,9 +162,9 @@ def add_player_info_to_cat(data, player, rows, per_game):
     for row in rows:
         r = pd.DataFrame()
         if(per_game):
-            r['data'] = player[row]/player['G']
+            r['data'] = player[beep(row)]/player['G']
         else:
-            r['data'] = player[row]
+            r['data'] = player[beep(row)]
         r['idx'] = i
         r['player_id'] = max_player_id
         r_df = pd.concat([r_df, r], axis=0)
@@ -164,6 +176,7 @@ BASIC_OFFENSIVE_COUNTING_STATS = (['PTS', 'REB', 'AST'], 'Offensive Counting Sta
 BASIC_DEFENSIVE_COUNTING_STATS = (['BLK', 'STL'], 'Defensive Counting Stats')
 BASIC_BAD_STATS = (['TOV', 'PF'], 'Negative Counting Stats')
 ADVANCED_STATS = (['OWS','DWS','WS','OBPM','DBPM','BPM','VORP', 'PER'], 'Advanced Stats')
+EFFICENCY_METRICS = (['FG_PCT', 'FG3_PCT', 'FT_PCT', 'TS%'], 'Efficiency Metrics')
 
 for stat in BASIC_OFFENSIVE_COUNTING_STATS[0]:
     gen_scatter_plot_by_year(stat, True)
@@ -174,7 +187,11 @@ for stat in BASIC_DEFENSIVE_COUNTING_STATS[0]:
 for stat in BASIC_BAD_STATS[0]:
     gen_scatter_plot_by_year(stat, True)
 
+for stat in EFFICENCY_METRICS[0]:
+    gen_scatter_plot_by_year(stat, False)
 
+gen_scatter_plot_by_cat(BASIC_OFFENSIVE_COUNTING_STATS[0], True, BASIC_OFFENSIVE_COUNTING_STATS[1])
 gen_scatter_plot_by_cat(BASIC_DEFENSIVE_COUNTING_STATS[0], True, BASIC_DEFENSIVE_COUNTING_STATS[1])
 gen_scatter_plot_by_cat(BASIC_BAD_STATS[0], True, BASIC_BAD_STATS[1])
 gen_scatter_plot_by_cat(ADVANCED_STATS[0], False, ADVANCED_STATS[1])
+gen_scatter_plot_by_cat(EFFICENCY_METRICS[0], False, EFFICENCY_METRICS[1])
